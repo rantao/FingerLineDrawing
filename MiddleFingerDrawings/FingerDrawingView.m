@@ -14,15 +14,18 @@
 @property (nonatomic) CGPoint end;
 @property (nonatomic) UIColor *color;
 @property (strong, nonatomic) NSMutableArray *allLines;
+@property (strong, nonatomic) Line *currentDrawing;
+@property (nonatomic) BOOL currentlyDrawing;
 @end
 
-@implementation FingerDrawingView
+@implementation FingerDrawingView 
 
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+    
     }
     return self;
 }
@@ -41,7 +44,11 @@
     for (Line *line in self.allLines) {
         [line drawLineWithContext:context];
     }
+    if (self.currentlyDrawing) {
+        [self.currentDrawing drawLineWithContext:context];
+    }
 }
+
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -52,27 +59,43 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     // Grab the current point
+    self.currentlyDrawing = YES;
     self.end = [[touches anyObject] locationInView:self];
+    self.color = [self randomColor];
+    self.currentDrawing = [Line initWithStartPoint:self.start withEndPoint:self.end withColor:self.color];
+    [self setNeedsDisplay];    
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     self.end = [[touches anyObject] locationInView:self];
     self.color = [self randomColor];
+    self.currentlyDrawing = NO;
     [self.allLines addObject:[Line initWithStartPoint:self.start withEndPoint:self.end withColor:self.color]];
-    NSLog(@"%@",self.allLines);
     [self setNeedsDisplay];
 }
 
 
 -(float) randomIntensity {
-    return 1 - arc4random() % 11 * 0.1;
+    return arc4random() % 1100 * 0.001;
 }
 
 - (UIColor*) randomColor {
     return [UIColor colorWithRed:[self randomIntensity] green:[self randomIntensity]  blue:[self randomIntensity]  alpha:1];
 }
 
+
+- (BOOL) canBecomeFirstResponder {
+    return YES;
+}
+
+- (void) motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
+    if (motion == UIEventSubtypeMotionShake) {
+        NSLog(@"Device started shaking...");
+        self.allLines = [NSMutableArray new];
+        [self setNeedsDisplay];
+    }
+}
 
 
 @end

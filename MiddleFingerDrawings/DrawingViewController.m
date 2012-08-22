@@ -27,6 +27,13 @@
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
+
+}
+
+-(void) viewDidAppear:(BOOL)animated {
+    
+    [self.view becomeFirstResponder];
+
 }
 
 - (void)viewDidUnload
